@@ -1,0 +1,54 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: otc_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: otcdesk
+      POSTGRES_USER: otc_user
+      POSTGRES_PASSWORD: otc_pass
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U otc_user -d otcdesk"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: otc_backend
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql+asyncpg://otc_user:otc_pass@db:5432/otcdesk
+      JWT_SECRET: change_me_in_prod
+      ACCESS_TOKEN_EXPIRE_MINUTES: 720
+      ALLOWED_ORIGINS: http://localhost:5173
+      MARKET_SYMBOLS: BTC-USD,ETH-USD,SOL-USD,ADA-USD
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: otc_frontend
+    restart: unless-stopped
+    environment:
+      VITE_API_BASE_URL: http://localhost:8000
+    depends_on:
+      - backend
+    ports:
+      - "5173:5173"
+
+volumes:
+  postgres_data:
