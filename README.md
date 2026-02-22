@@ -55,4 +55,5 @@ Generate additional mock RFQs, trades, positions, and market history:
 ```bash
 cd backend
 python -m app.scripts.seed_mock_data
-```
+```<img width="1740" height="1037" alt="Screenshot 2026-02-22 at 1 26 28 PM" src="https://github.com/user-attachments/assets/5b63156a-01dc-44fb-ba56-738d1ffc93ba" />
+
